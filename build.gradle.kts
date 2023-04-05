@@ -8,12 +8,21 @@ plugins {
 taboolib {
     install("common")
     install("common-5")
+    install("module-configuration")
     install("module-database")
     install("module-ui")
+    install("module-nms")
+    install("module-nms-util")
     install("platform-bukkit")
     install("expansion-command-helper")
     classifier = null
     version = "6.0.10-113"
+
+    description {
+        contributors {
+            name("xiaozhangup")
+        }
+    }
 }
 
 repositories {
@@ -26,6 +35,9 @@ dependencies {
     compileOnly("ink.ptms.core:v11902:11902-minimize:universal")
     compileOnly(kotlin("stdlib"))
     compileOnly(fileTree("libs"))
+
+    compileOnly("mysql:mysql-connector-java:8.0.30")
+    compileOnly("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.withType<JavaCompile> {
