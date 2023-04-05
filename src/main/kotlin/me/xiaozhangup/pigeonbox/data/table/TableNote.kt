@@ -4,9 +4,6 @@ import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import me.xiaozhangup.pigeonbox.data.DatabaseManager.dataSource
 import me.xiaozhangup.pigeonbox.type.Note
 import taboolib.module.database.*
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class TableNote : SQLTable {
 

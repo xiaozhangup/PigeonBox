@@ -16,7 +16,8 @@ import java.util.*
 @Awake(LifeCycle.ENABLE)
 object Commands {
 
-    private val prefix: Component = MiniMessage.miniMessage().deserialize("<dark_gray>[<color:#ef9f76>留言</color>]</dark_gray> ")
+    private val prefix: Component =
+        MiniMessage.miniMessage().deserialize("<dark_gray>[<color:#ef9f76>留言</color>]</dark_gray> ")
 
     @Awake(LifeCycle.ENABLE)
     fun regCommand() {
@@ -58,7 +59,7 @@ object Commands {
                     sender.nextChat {
                         val playername = it
                         val uuid = DatabaseManager.tableUser.getUUIDByName(playername)
-                        if (playername == sender.name){
+                        if (playername == sender.name) {
                             sender.send(softColor("你不能给自己留言!"))
                         } else if (uuid.isNullOrEmpty()) {
                             sender.send(softColor("没有找到这个玩家,他加入过游戏吗?"))

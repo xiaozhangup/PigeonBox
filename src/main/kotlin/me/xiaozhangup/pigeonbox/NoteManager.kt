@@ -6,7 +6,7 @@ import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.entity.Player
-import java.util.UUID
+import java.util.*
 
 class NoteManager {
 
@@ -19,7 +19,8 @@ class NoteManager {
             val sender = DatabaseManager.tableUser.getNameByUUID(note[1])
             if (sender.isNullOrEmpty()) continue
             val uid = note[0]
-            val readed = MiniMessage.miniMessage().deserialize("<click:run_command:'/note check ${uid}'><color:#946249><b>标记为已读</b></color></click>")
+            val readed = MiniMessage.miniMessage()
+                .deserialize("<click:run_command:'/note check ${uid}'><color:#946249><b>标记为已读</b></color></click>")
             book.addPage(Component.text(sender + "的留言:\n").append(readed).append(Component.text("\n\n" + note[2])))
         }
 
