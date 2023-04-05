@@ -7,7 +7,7 @@ import java.util.*
 
 class TableUser : SQLTable {
 
-    override val table: Table<Host<SQL>, SQL> = Table("mail_user", DatabaseManager.host) {
+    override val table: Table<Host<SQL>, SQL> = Table("user", DatabaseManager.host) {
         add("uuid") {
             type(ColumnTypeSQL.VARCHAR, 36) {
                 options(ColumnOptionSQL.KEY)
@@ -23,68 +23,27 @@ class TableUser : SQLTable {
         }
     }
 
-    operator fun get(name: String): String? {
+    fun getNameByUUID(uuid: UUID): String? {
+        return getNameByUUID(uuid.toString())
+    }
+
+    fun getNameByUUID(uuid: String): String? {
         return table.select(dataSource) {
-            rows("data")
+            where("uuid" eq uuid)
+            limit(1)
+        }.firstOrNull {
+            getString("name")
+        }
+    }
+
+    fun getUUIDByName(name: String): String? {
+        return table.select(dataSource) {
             where("name" eq name)
             limit(1)
         }.firstOrNull {
-            getString("data")
+            getString("uuid")
         }
     }
 
-    operator fun get(uuid: UUID): String? {
-        return table.select(dataSource) {
-            rows("data")
-            where("uuid" eq uuid.toString())
-            limit(1)
-        }.firstOrNull {
-            getString("data")
-        }
-    }
-
-    operator fun get(uuid: String, name: String): String? {
-        return table.select(dataSource) {
-            rows("data")
-            where(("uuid" eq uuid) and ("name" eq name))
-            limit(1)
-        }.firstOrNull {
-            getString("data")
-        }
-    }
-
-    operator fun get(uuid: UUID, name: String): String? =
-        get(uuid.toString(), name)
-
-    operator fun set(uuid: String, name: String, data: String) {
-        if (get(uuid, name) == null) {
-            table.insert(dataSource, "uuid", "name", "data") {
-                value(uuid, name, data)
-            }
-        } else {
-            table.update(dataSource) {
-                set("data", data)
-                where(("uuid" eq uuid) and ("name" eq name))
-            }
-        }
-    }
-
-    operator fun set(uuid: UUID, name: String, data: String) {
-        set(uuid.toString(), name, data)
-    }
-
-    operator fun set(uuid: UUID, data: String) {
-        table.update(dataSource) {
-            set("data", data)
-            where("uuid" eq uuid.toString())
-        }
-    }
-
-    operator fun set(name: String, data: String) {
-        table.update(dataSource) {
-            set("data", data)
-            where("name" eq name)
-        }
-    }
 
 }

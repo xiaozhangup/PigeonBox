@@ -42,8 +42,8 @@ object DatabaseManager {
         dataSource = host.createDataSource()
 
         tableNote = TableNote().apply { createTable() }
-        tableUser = TableUser().apply { createTable() }
         tableMail = TableMail().apply { createTable() }
+        tableUser = TableUser().apply { createTable() }
     }
 
 }

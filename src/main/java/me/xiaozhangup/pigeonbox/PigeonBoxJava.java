@@ -5,8 +5,8 @@ import taboolib.common.platform.Awake;
 
 public class PigeonBoxJava {
 
-    public static void onEnable() {
-
+    public void onEnable() {
+        System.out.println(this);
     }
 
 }

@@ -26,6 +26,5 @@ object PigeonBox : Plugin() {
         private set
 
     override fun onEnable() {
-        PigeonBoxJava.onEnable()
     }
 }
