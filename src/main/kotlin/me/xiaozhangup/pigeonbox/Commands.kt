@@ -4,6 +4,7 @@ import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import taboolib.common.LifeCycle
 import taboolib.common.platform.Awake
 import taboolib.common.platform.command.PermissionDefault
@@ -18,6 +19,7 @@ object Commands {
 
     private val prefix: Component =
         MiniMessage.miniMessage().deserialize("<dark_gray>[<color:#ef9f76>留言</color>]</dark_gray> ")
+    private val mm: MiniMessage = MiniMessage.miniMessage()
 
     @Awake(LifeCycle.ENABLE)
     fun regCommand() {
@@ -28,26 +30,73 @@ object Commands {
                         sender.send(softColor("正在从数据库加载你的留言..."))
                         val book = NoteManager().getAll(sender)
                         if (book.pages().size < 1) {
-                            sender.send("<color:#e78284>你没有未读的留言</color>")
+                            sender.send("<color:#e78284>你没有还未读的留言</color>")
                         } else {
                             sender.openBook(book)
                         }
                     }
                 }
             }
-            literal("check") {
+            literal("unread") {
+                execute<Player> { sender, _, _ ->
+                    submitAsync {
+                        sender.send(softColor("正在从数据库加载你的留言..."))
+                        val book = NoteManager().getUnread(sender)
+                        if (book.pages().size < 1) {
+                            sender.send("<color:#e78284>你没有还未被读的留言</color>")
+                        } else {
+                            sender.openBook(book)
+                        }
+                    }
+                }
+            }
+            literal("check", hidden = true) {
                 dynamic {
                     execute<Player> { sender, _, argument ->
                         submitAsync {
-                            DatabaseManager.tableNote.delete(argument)
-                            val book = NoteManager().getAll(sender)
-                            if (book.pages().size < 1) {
-                                sender.send("<color:#e78284>所有留言阅读完毕!</color>")
-                                sender.closeInventory()
-                            } else {
-                                sender.openBook(book)
+                            DatabaseManager.tableNote.canDelete(argument, sender.uniqueId.toString())?. let {
+                                if (it) {
+                                    DatabaseManager.tableNote.delete(argument)
+                                    val book = NoteManager().getAll(sender)
+                                    if (book.pages().size < 1) {
+                                        sender.send("<color:#e78284>所有留言阅读完毕!</color>")
+                                    } else {
+                                        sender.openBook(book)
+                                    }
+                                }
                             }
                         }
+                    }
+                }
+            }
+            literal("delete", hidden = true) {
+                dynamic {
+                    execute<Player> { sender, _, argument ->
+                        submitAsync {
+                            DatabaseManager.tableNote.canUnsend(argument, sender.uniqueId.toString())?. let {
+                                if (it) {
+                                    DatabaseManager.tableNote.delete(argument)
+                                    val book = NoteManager().getUnread(sender) // TODO: Change
+                                    if (book.pages().size < 1) {
+                                        sender.send("<color:#e78284>你没有任何未被读留言!</color>")
+                                    } else {
+                                        sender.openBook(book)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            literal("help") {
+                execute<Player> { sender, context, argument ->
+                    submitAsync {
+                        sender.sendMessage(mm.deserialize("<br><br><br>"))
+                        sender.sendMessage(mm.deserialize(" <color:#ef9f76><b>留言功能使用方法:</b></color><newline>"))
+                        sender.sendMessage(mm.deserialize("  <white>/note<white> <dark_gray>-</dark_gray> <gray>开始交互式留言</gray>"))
+                        sender.sendMessage(mm.deserialize("  <white>/note unread<white> <dark_gray>-</dark_gray> <gray>查看你发出的未被读留言</gray>"))
+                        sender.sendMessage(mm.deserialize("  <white>/note all<white> <dark_gray>-</dark_gray> <gray>查看你的未读留言</gray>"))
+                        sender.sendMessage(mm.deserialize("<br>"))
                     }
                 }
             }

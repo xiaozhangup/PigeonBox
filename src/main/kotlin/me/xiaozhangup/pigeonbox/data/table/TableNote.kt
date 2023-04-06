@@ -19,9 +19,7 @@ class TableNote : SQLTable {
         }
 
         add("to") {
-            type(ColumnTypeSQL.VARCHAR, 36) {
-                options(ColumnOptionSQL.KEY)
-            }
+            type(ColumnTypeSQL.VARCHAR, 36)
         }
 
         add("note") {
@@ -30,12 +28,13 @@ class TableNote : SQLTable {
     }
 
 
-    fun getByFrom(uuid: String): Map<String, String> {
-        val notes = mutableMapOf<String, String>()
+    fun getByFrom(uuid: String): List<List<String>> {
+        val notes = mutableListOf<List<String>>()
         table.select(dataSource) {
             where("from" eq uuid)
+            limit(8)
         }.forEach {
-            notes[getString("id")] = getString("note")
+            notes.add(listOf(getString("id"), getString("to"), getString("note")))
         }
 
         return notes
@@ -45,6 +44,7 @@ class TableNote : SQLTable {
         val notes = mutableListOf<List<String>>()
         table.select(dataSource) {
             where("to" eq uuid)
+            limit(8)
         }.forEach {
             notes.add(listOf(getString("id"), getString("from"), getString("note")))
         }
@@ -66,6 +66,24 @@ class TableNote : SQLTable {
     fun delete(uuid: String) {
         table.delete(dataSource) {
             where("id" eq uuid)
+        }
+    }
+
+    fun canDelete(uuid: String, to: String): Boolean? {
+        return table.select(dataSource) {
+            where("id" eq uuid)
+            limit(1)
+        }.firstOrNull {
+            getString("to").equals(to)
+        }
+    }
+
+    fun canUnsend(uuid: String, from: String): Boolean? {
+        return table.select(dataSource) {
+            where("id" eq uuid)
+            limit(1)
+        }.firstOrNull {
+            getString("from").equals(from)
         }
     }
 
