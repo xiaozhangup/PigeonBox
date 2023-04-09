@@ -7,6 +7,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import taboolib.common.LifeCycle
 import taboolib.common.platform.Awake
+import taboolib.common.platform.SkipTo
 import taboolib.common.platform.command.PermissionDefault
 import taboolib.common.platform.command.command
 import taboolib.common.platform.function.submitAsync
@@ -14,8 +15,8 @@ import taboolib.platform.util.cancelNextChat
 import taboolib.platform.util.nextChat
 import java.util.*
 
-@Awake(LifeCycle.ENABLE)
-object Commands {
+@SkipTo(LifeCycle.ENABLE)
+object NoteCommands {
 
     private val prefix: Component =
         MiniMessage.miniMessage().deserialize("<dark_gray>[<color:#ef9f76>留言</color>]</dark_gray> ")
