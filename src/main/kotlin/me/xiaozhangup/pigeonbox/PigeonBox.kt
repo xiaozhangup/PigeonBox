@@ -7,14 +7,15 @@ import taboolib.common.platform.Plugin
 import taboolib.module.configuration.Config
 import taboolib.module.configuration.Configuration
 import taboolib.platform.BukkitPlugin
+import java.util.*
 
 @RuntimeDependencies(
     RuntimeDependency(value = "mysql:mysql-connector-java:8.0.30")
 )
 object PigeonBox : Plugin() {
 
+    val name: WeakHashMap<String, String> = WeakHashMap<String, String>()
     val plugin: BukkitPlugin by lazy { BukkitPlugin.getInstance() }
-
     val gson: Gson = Gson()
 
     @Config

@@ -1,5 +1,6 @@
 package me.xiaozhangup.pigeonbox
 
+import me.xiaozhangup.pigeonbox.PigeonBox.name
 import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import me.xiaozhangup.pigeonbox.type.Note
 import net.kyori.adventure.inventory.Book
@@ -9,8 +10,6 @@ import org.bukkit.entity.Player
 import java.util.*
 
 class NoteManager {
-
-    private val name: WeakHashMap<String, String> = WeakHashMap<String, String>()
 
     fun getAll(player: Player): Book {
         val book = Book.builder()
