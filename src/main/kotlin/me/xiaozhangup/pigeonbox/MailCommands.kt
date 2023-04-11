@@ -6,6 +6,7 @@ import me.xiaozhangup.pigeonbox.type.Mail
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Material
+import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import taboolib.common.LifeCycle
@@ -87,6 +88,7 @@ object MailCommands {
                         } else {
                             sender.send("请给发送给${playername}的邮件放入物品")
                             submit {
+                                sender.playSound(sender.location, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
                                 sender.openMenu<Stored>("请给邮件放入物品") {
                                     rows(3)
 
@@ -150,6 +152,7 @@ object MailCommands {
     }
 
     private fun Player.openAll() {
+        playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         send("正在从数据库加载你的邮件...")
         submitAsync {
             val kits = DatabaseManager.tableMail.getByTo(uniqueId.toString())
@@ -227,6 +230,7 @@ object MailCommands {
     }
 
     private fun Player.openMail(mail: Mail, title: String) {
+        playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         openMenu<Linked<String>>(title) {
             rows(3)
 
@@ -291,6 +295,7 @@ object MailCommands {
     }
 
     private fun Player.openDelete(mail: Mail, title: String) {
+        playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         openMenu<Linked<String>>(title) {
             rows(3)
 
@@ -339,6 +344,7 @@ object MailCommands {
     }
 
     private fun Player.openUnread() {
+        playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         send("正在从数据库加载你的邮件...")
         submitAsync {
             val sended = DatabaseManager.tableMail.getByFrom(uniqueId.toString())

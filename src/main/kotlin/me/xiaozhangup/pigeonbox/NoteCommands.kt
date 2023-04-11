@@ -3,6 +3,7 @@ package me.xiaozhangup.pigeonbox
 import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import taboolib.common.LifeCycle
@@ -29,6 +30,7 @@ object NoteCommands {
                 execute<Player> { sender, _, _ ->
                     submitAsync {
                         sender.send(softColor("正在从数据库加载你的留言..."))
+                        sender.playSound(sender.location, Sound.ITEM_BOOK_PUT, 1f, 1f)
                         val book = NoteManager().getAll(sender)
                         if (book.pages().size < 1) {
                             sender.send("<color:#e78284>你没有还未读的留言</color>")
@@ -42,6 +44,7 @@ object NoteCommands {
                 execute<Player> { sender, _, _ ->
                     submitAsync {
                         sender.send(softColor("正在从数据库加载你的留言..."))
+                        sender.playSound(sender.location, Sound.ITEM_BOOK_PUT, 1f, 1f)
                         val book = NoteManager().getUnread(sender)
                         if (book.pages().size < 1) {
                             sender.send("<color:#e78284>你没有还未被读的留言</color>")
@@ -120,6 +123,7 @@ object NoteCommands {
                                 val note = NoteManager().asNote(sender.uniqueId, UUID.fromString(uuid), message)
                                 //sender.send(softColor(NoteManager().asNote(sender.uniqueId, UUID.fromString(uuid), message).asJson()))
                                 DatabaseManager.tableNote.add(note)
+                                sender.playSound(sender.location, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
                                 sender.send(softColor("给 $playername 留言成功!"))
                             }
                         }
