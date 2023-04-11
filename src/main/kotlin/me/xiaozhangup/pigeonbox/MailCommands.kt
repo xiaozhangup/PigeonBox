@@ -271,6 +271,7 @@ object MailCommands {
             }
             slot -= 5
             if (slot >= mail.kits.size) {
+                val uuid = mail.uuid.toString()
                 set('p', buildItem(Material.HOPPER) {
                     name = "&f领取此邮件"
                     lore += ""
@@ -278,12 +279,19 @@ object MailCommands {
                     colored()
                 }) {
                     submitAsync {
-                        DatabaseManager.tableMail.delete(mail.uuid.toString())
-                        submit {
-                            for (item in mail.kits) {
-                                this@openMail.inventory.addItem(item.toItemStack())
+                        if (DatabaseManager.tableMail.has(uuid) && DatabaseManager.tableMail.getToByID(uuid) == uniqueId.toString()) {
+                            DatabaseManager.tableMail.delete(uuid)
+                            submit {
+                                for (item in mail.kits) {
+                                    this@openMail.inventory.addItem(item.toItemStack())
+                                }
+                                openAll()
                             }
-                            openAll()
+                        } else {
+                            submit {
+                                send("这个邮件似乎并不存在".red())
+                                openAll()
+                            }
                         }
                     }
                 }
