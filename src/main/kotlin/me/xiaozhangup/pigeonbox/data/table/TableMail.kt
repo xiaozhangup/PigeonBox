@@ -133,6 +133,13 @@ class TableMail : SQLTable {
         }
     }
 
+    fun resend(uuid: String, to: String) {
+        table.update(dataSource) {
+            set("to", to)
+            where("id" eq uuid)
+        }
+    }
+
     private fun String.uuid(): UUID? {
         return UUID.fromString(this)
     }

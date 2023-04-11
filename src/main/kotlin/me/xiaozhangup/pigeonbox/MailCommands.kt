@@ -1,6 +1,8 @@
 package me.xiaozhangup.pigeonbox
 
 import me.xiaozhangup.pigeonbox.MailCommands.openMail
+import me.xiaozhangup.pigeonbox.MailCommands.send
+import me.xiaozhangup.pigeonbox.MailCommands.toBase64
 import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import me.xiaozhangup.pigeonbox.type.Mail
 import net.kyori.adventure.text.Component
@@ -89,56 +91,7 @@ object MailCommands {
                             sender.send("请给发送给${playername}的邮件放入物品")
                             submit {
                                 sender.playSound(sender.location, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
-                                sender.openMenu<Stored>("请给邮件放入物品") {
-                                    rows(3)
-
-                                    map(
-                                        "         ",
-                                        "         ",
-                                        "--c---x--"
-                                    )
-
-                                    set('-', background)
-                                    set('x', buildItem(Material.WRITABLE_BOOK) {
-                                        name = "&f将发送邮件给: $playername"
-                                        lore += "&7将你的物品放入"
-                                        lore += "&7然后关闭菜单"
-                                        lore += "&7即可将邮件发送"
-                                        colored()
-                                    })
-                                    set('c', buildItem(Material.BOOK) {
-                                        name = "&c如何取消邮件发送?"
-                                        lore += "&7将菜单留空并"
-                                        lore += "&7直接关闭菜单"
-                                        lore += "&7即可取消本次发送"
-                                        colored()
-                                    })
-
-                                    onClick { event ->
-                                        if (event.rawSlot in 18..26) {
-                                            event.isCancelled = true
-                                        }
-                                    }
-
-                                    onClose { event ->
-                                        submitAsync {
-                                            val items = mutableListOf<String>()
-                                            for (slot in 0..17) {
-                                                event.inventory.getItem(slot)?.toBase64()
-                                                    ?.let { it1 -> items.add(it1) }
-                                            }
-
-                                            if (items.size < 1) {
-                                                sender.send("邮件发送已取消!".red())
-                                            } else {
-                                                sender.send("正在发送 ${items.size} 个物品给${playername}...".red())
-                                                val mail = MailManager().asNote(sender.uniqueId, UUID.fromString(uuid), items)
-                                                DatabaseManager.tableMail.add(mail)
-                                                sender.send("发送完成!")
-                                            }
-                                        }
-                                    }
-                                }
+                                sender.send(playername, uuid)
                             }
                         }
                     }
@@ -149,6 +102,59 @@ object MailCommands {
 
     private fun Player.send(message: String) {
         sendMessage(prefix.append(MiniMessage.miniMessage().deserialize(message)))
+    }
+
+    private fun Player.send(playername: String, to: String) {
+        openMenu<Stored>("请给邮件放入物品") {
+            rows(3)
+
+            map(
+                "         ",
+                "         ",
+                "--c---x--"
+            )
+
+            set('-', background)
+            set('x', buildItem(Material.WRITABLE_BOOK) {
+                name = "&f将发送邮件给: $playername"
+                lore += "&7将你的物品放入"
+                lore += "&7然后关闭菜单"
+                lore += "&7即可将邮件发送"
+                colored()
+            })
+            set('c', buildItem(Material.BOOK) {
+                name = "&c如何取消邮件发送?"
+                lore += "&7将菜单留空并"
+                lore += "&7直接关闭菜单"
+                lore += "&7即可取消本次发送"
+                colored()
+            })
+
+            onClick { event ->
+                if (event.rawSlot in 18..26) {
+                    event.isCancelled = true
+                }
+            }
+
+            onClose { event ->
+                submitAsync {
+                    val items = mutableListOf<String>()
+                    for (slot in 0..17) {
+                        event.inventory.getItem(slot)?.toBase64()
+                            ?.let { it1 -> items.add(it1) }
+                    }
+
+                    if (items.size < 1) {
+                        send("邮件发送已取消!".red())
+                    } else {
+                        send("正在发送 ${items.size} 个物品给${playername}...".red())
+                        val mail = MailManager().asNote(uniqueId, UUID.fromString(to), items)
+                        DatabaseManager.tableMail.add(mail)
+                        send("发送完成!")
+                    }
+                }
+            }
+        }
     }
 
     private fun Player.openAll() {
@@ -327,14 +333,14 @@ object MailCommands {
             set('r', buildItem(Material.REDSTONE) {
                 name = "&c撤销发送这个邮件"
                 lore += ""
-                lore += "&e物品将不会返还到背包!"
+                lore += "&f物品将返还到你的邮箱"
                 lore += "&c单击撤销此邮件"
                 colored()
             }) {
                 submitAsync {
-                    DatabaseManager.tableMail.delete(mail.uuid.toString())
+                    DatabaseManager.tableMail.resend(mail.uuid.toString(), uniqueId.toString())
                     submit {
-                        openUnread()
+                        openAll()
                     }
                 }
             }
