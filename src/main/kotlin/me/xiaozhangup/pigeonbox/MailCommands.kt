@@ -1,8 +1,5 @@
 package me.xiaozhangup.pigeonbox
 
-import me.xiaozhangup.pigeonbox.MailCommands.openMail
-import me.xiaozhangup.pigeonbox.MailCommands.send
-import me.xiaozhangup.pigeonbox.MailCommands.toBase64
 import me.xiaozhangup.pigeonbox.data.DatabaseManager
 import me.xiaozhangup.pigeonbox.type.Mail
 import net.kyori.adventure.text.Component
@@ -54,12 +51,12 @@ object MailCommands {
     fun regCommand() {
         command("mail", permissionDefault = PermissionDefault.TRUE) {
             literal("all") {
-                execute<Player> {sender, _, _ ->
+                execute<Player> { sender, _, _ ->
                     sender.openAll()
                 }
             }
             literal("unreceive") {
-                execute<Player> {sender, _, _ ->
+                execute<Player> { sender, _, _ ->
                     sender.openUnread()
                 }
             }
@@ -107,6 +104,7 @@ object MailCommands {
     private fun Player.send(playername: String, to: String) {
         openMenu<Stored>("请给邮件放入物品") {
             rows(3)
+            handLocked(false)
 
             map(
                 "         ",
@@ -157,79 +155,76 @@ object MailCommands {
         }
     }
 
-    private fun Player.openAll() {
+    private fun Player.openAll(mes: Boolean = true) {
         playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
-        send("正在从数据库加载你的邮件...")
+        if (mes) send("正在从数据库加载你的邮件...")
         submitAsync {
             val kits = DatabaseManager.tableMail.getByTo(uniqueId.toString())
-            submit {
-                openMenu<Linked<String>>("你的邮箱") {
-                    rows(3)
+            openMenu<Linked<String>>("你的邮箱") {
+                rows(3)
+                virtualize()
 
-                    map(
-                        "         ",
-                        "         ",
-                        "-d----pn-"
-                    )
+                map(
+                    "         ",
+                    "         ",
+                    "-d----pn-"
+                )
 
-                    slots(mutableListOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17).toList())
+                slots(mutableListOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17).toList())
 
-                    elements {
-                        kits
-                    }
+                elements {
+                    kits
+                }
 
-                    onGenerate(true) {_, element, _, _ ->
-                        buildItem(Material.CHEST_MINECART) {
-                            val sender = DatabaseManager.tableMail.getFromByID(element)?.let {
-                                PigeonBox.name.computeIfAbsent(it) {it1 ->
-                                    DatabaseManager.tableUser.getNameByUUID(it1)
-                                }
-                            }
-                            name = if (sender.isNullOrEmpty()) {
-                                "&f莫名其妙的邮件"
-                            } else {
-                                "&f${sender}给你的邮件"
-                            }
-                            colored()
-                        }
-                    }
-
-                    setNextPage(25) { _, hasNextPage ->
-                        if (hasNextPage) {
-                            next
-                        } else {
-                            nonext
-                        }
-                    }
-                    setPreviousPage(24) { _, hasNextPage ->
-                        if (hasNextPage) {
-                            pre
-                        } else {
-                            nopre
-                        }
-                    }
-
-                    onClick { _, element ->
-                        submitAsync {
-                            val mail = DatabaseManager.tableMail.getMail(element)
-                            val sender = PigeonBox.name.computeIfAbsent(mail?.from.toString()) { it1 ->
+                onGenerate(true) { _, element, _, _ ->
+                    buildItem(Material.CHEST_MINECART) {
+                        val sender = DatabaseManager.tableMail.getFromByID(element)?.let {
+                            PigeonBox.name.computeIfAbsent(it) { it1 ->
                                 DatabaseManager.tableUser.getNameByUUID(it1)
                             }
-                            submit {
-                                mail?.let { openMail(it, "${sender}给你的邮件") }
-                            }
                         }
-                    }
-
-                    set('-', background)
-                    set('d', buildItem(Material.BOOK) {
-                        name = "&f查看你发送的未被领取的邮件"
-                        lore += ""
-                        lore += "&e单击进入"
+                        name = if (sender.isNullOrEmpty()) {
+                            "&f莫名其妙的邮件"
+                        } else {
+                            "&f${sender}给你的邮件"
+                        }
                         colored()
-                    }) {
-                        openUnread()
                     }
+                }
+
+                setNextPage(25) { _, hasNextPage ->
+                    if (hasNextPage) {
+                        next
+                    } else {
+                        nonext
+                    }
+                }
+                setPreviousPage(24) { _, hasNextPage ->
+                    if (hasNextPage) {
+                        pre
+                    } else {
+                        nopre
+                    }
+                }
+
+                onClick { _, element ->
+                    submitAsync {
+                        val mail = DatabaseManager.tableMail.getMail(element)
+                        val sender = PigeonBox.name.computeIfAbsent(mail?.from.toString()) { it1 ->
+                            DatabaseManager.tableUser.getNameByUUID(it1)
+                        }
+                        mail?.let { openMail(it, "${sender}给你的邮件") }
+                    }
+                }
+
+                set('-', background)
+                set('d', buildItem(Material.BOOK) {
+                    name = "&f查看你发送的未被领取的邮件"
+                    lore += ""
+                    lore += "&e单击进入"
+                    colored()
+                }) {
+                    openUnread(false)
                 }
             }
         }
@@ -239,6 +234,7 @@ object MailCommands {
         playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         openMenu<Linked<String>>(title) {
             rows(3)
+            virtualize()
 
             map(
                 "         ",
@@ -246,13 +242,13 @@ object MailCommands {
                 "-d-----p-"
             )
 
-            slots(mutableListOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17).toList())
+            slots(mutableListOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17).toList())
 
             elements {
                 mail.kits
             }
 
-            onGenerate(true) {_, element, _, _ ->
+            onGenerate(true) { _, element, _, _ ->
                 element.toItemStack()
             }
 
@@ -263,7 +259,7 @@ object MailCommands {
                 lore += "&e单击进入"
                 colored()
             }) {
-                openAll()
+                openAll(false)
             }
             var slot = 0
             for (item in this@openMail.inventory) {
@@ -279,19 +275,18 @@ object MailCommands {
                     colored()
                 }) {
                     submitAsync {
-                        if (DatabaseManager.tableMail.has(uuid) && DatabaseManager.tableMail.getToByID(uuid) == uniqueId.toString()) {
+                        val push = DatabaseManager.tableMail.getMail(uuid)
+                        if (push != null && push.to == uniqueId) {
                             DatabaseManager.tableMail.delete(uuid)
                             submit {
                                 for (item in mail.kits) {
                                     this@openMail.inventory.addItem(item.toItemStack())
                                 }
-                                openAll()
+                                openAll(false)
                             }
                         } else {
-                            submit {
-                                send("这个邮件似乎并不存在".red())
-                                openAll()
-                            }
+                            send("这个邮件似乎并不存在".red())
+                            openAll(false)
                         }
                     }
                 }
@@ -312,6 +307,7 @@ object MailCommands {
         playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
         openMenu<Linked<String>>(title) {
             rows(3)
+            virtualize()
 
             map(
                 "         ",
@@ -319,13 +315,13 @@ object MailCommands {
                 "-d-----r-"
             )
 
-            slots(mutableListOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17).toList())
+            slots(mutableListOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17).toList())
 
             elements {
                 mail.kits
             }
 
-            onGenerate(true) {_, element, _, _ ->
+            onGenerate(true) { _, element, _, _ ->
                 element.toItemStack()
             }
 
@@ -336,7 +332,7 @@ object MailCommands {
                 lore += "&e单击进入"
                 colored()
             }) {
-                openUnread()
+                openUnread(false)
             }
             set('r', buildItem(Material.REDSTONE) {
                 name = "&c撤销发送这个邮件"
@@ -347,9 +343,7 @@ object MailCommands {
             }) {
                 submitAsync {
                     DatabaseManager.tableMail.resend(mail.uuid.toString(), uniqueId.toString())
-                    submit {
-                        openAll()
-                    }
+                    openAll(false)
                 }
             }
 
@@ -357,78 +351,75 @@ object MailCommands {
         }
     }
 
-    private fun Player.openUnread() {
+    private fun Player.openUnread(mes: Boolean = true) {
         playSound(location, Sound.ITEM_BUNDLE_INSERT, 1f, 1f)
-        send("正在从数据库加载你的邮件...")
+        if (mes) send("正在从数据库加载你的邮件...")
         submitAsync {
             val sended = DatabaseManager.tableMail.getByFrom(uniqueId.toString())
-            submit {
-                openMenu<Linked<String>>("你发送的未被领取的邮件") {
-                    rows(3)
+            openMenu<Linked<String>>("你发送的未被领取的邮件") {
+                rows(3)
+                virtualize()
 
-                    map(
-                        "         ",
-                        "         ",
-                        "-d----pn-"
-                    )
+                map(
+                    "         ",
+                    "         ",
+                    "-d----pn-"
+                )
 
-                    slots(mutableListOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17).toList())
+                slots(mutableListOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17).toList())
 
-                    elements {
-                        sended
-                    }
+                elements {
+                    sended
+                }
 
-                    onGenerate(true) {_, element, _, _ ->
-                        buildItem(Material.CHEST_MINECART) {
-                            val sender = DatabaseManager.tableMail.getToByID(element)?.let {
-                                PigeonBox.name.computeIfAbsent(it) {it1 ->
-                                    DatabaseManager.tableUser.getNameByUUID(it1)
-                                }
-                            }
-                            name = if (sender.isNullOrEmpty()) {
-                                "&f莫名其妙的邮件"
-                            } else {
-                                "&f你发给${sender}的邮件"
-                            }
-                            colored()
-                        }
-                    }
-
-                    set('-', background)
-                    set('d', buildItem(Material.BOOK) {
-                        name = "&f查看你的邮箱"
-                        lore += ""
-                        lore += "&e单击进入"
-                        colored()
-                    }) {
-                        openAll()
-                    }
-
-                    onClick { _, element ->
-                        submitAsync {
-                            val mail = DatabaseManager.tableMail.getMail(element)
-                            val sender = PigeonBox.name.computeIfAbsent(mail?.to.toString()) { it1 ->
+                onGenerate(true) { _, element, _, _ ->
+                    buildItem(Material.CHEST_MINECART) {
+                        val sender = DatabaseManager.tableMail.getToByID(element)?.let {
+                            PigeonBox.name.computeIfAbsent(it) { it1 ->
                                 DatabaseManager.tableUser.getNameByUUID(it1)
                             }
-                            submit {
-                                mail?.let { openDelete(it, "你给${sender}的邮件") }
-                            }
                         }
+                        name = if (sender.isNullOrEmpty()) {
+                            "&f莫名其妙的邮件"
+                        } else {
+                            "&f你发给${sender}的邮件"
+                        }
+                        colored()
                     }
+                }
 
-                    setNextPage(25) { _, hasNextPage ->
-                        if (hasNextPage) {
-                            next
-                        } else {
-                            nonext
+                set('-', background)
+                set('d', buildItem(Material.BOOK) {
+                    name = "&f查看你的邮箱"
+                    lore += ""
+                    lore += "&e单击进入"
+                    colored()
+                }) {
+                    openAll(false)
+                }
+
+                onClick { _, element ->
+                    submitAsync {
+                        val mail = DatabaseManager.tableMail.getMail(element)
+                        val sender = PigeonBox.name.computeIfAbsent(mail?.to.toString()) { it1 ->
+                            DatabaseManager.tableUser.getNameByUUID(it1)
                         }
+                        mail?.let { openDelete(it, "你给${sender}的邮件") }
                     }
-                    setPreviousPage(24) { _, hasNextPage ->
-                        if (hasNextPage) {
-                            pre
-                        } else {
-                            nopre
-                        }
+                }
+
+                setNextPage(25) { _, hasNextPage ->
+                    if (hasNextPage) {
+                        next
+                    } else {
+                        nonext
+                    }
+                }
+                setPreviousPage(24) { _, hasNextPage ->
+                    if (hasNextPage) {
+                        pre
+                    } else {
+                        nopre
                     }
                 }
             }
